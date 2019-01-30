@@ -1,0 +1,75 @@
+##ASM code######################################################################
+
+				AREA asm_functions, CODE, READONLY
+				EXPORT  ASM_funct
+ASM_funct
+
+				; Save current SP for a faster access 
+				; to parameters in the stack
+				MOV   r12, sp
+				; save volatile registers
+				STMFD sp!,{r4-r8,r10-r11,lr}
+				
+				; OPTIONAL -> extract argument 4 and 5 into R4 and R5
+				;LDR   r4, [r12]
+				;LDR   r5, [r12,#4]
+				
+				; Actual code
+				
+				
+				
+				; End actual code
+				; TODO -> Setup a value for R0 to return
+				; Restore volatile registers
+				LDMFD sp!,{r4-r8,r10-r11,pc}
+				
+				END
+
+##C code########################################################################
+//--- Recap: 6 arguments ---
+//4 variables throught the registes r0 r1 r2 r3
+//Final 2 passed to stack
+//Pass the result to r0 (we can also pass 64 bit passing result also to r1).
+
+
+//Inline ASM in C code -> __ASM("SVC #0x10");
+
+extern int ASM_funct(int, int, int, int, int, int);
+
+int main(void){
+
+	int i=0xFFFFFFFF, j=2, k=3, l=4, m=5, n=6;
+	volatile int r=0; //Avoid compilers optimizations
+
+	r = ASM_funct(i, j, k, l, m, n);
+
+	while(1);
+}
+
+##SVN HANDLER##########################################################################
+
+SVC_Handler		PROC
+				EXPORT  SVC_Handler				[WEAK]
+				
+				STMFD SP!, {R0-R12, LR}			;Save all the register of the MSP stack pointer 	  	  
+				MRS R1, PSP						;Retrieve the PSP and store in R1   			
+				LDR R0, [R1, #24]				;We copy the program counter address. This because when there is an exception xPSR, PC, LR, R12, R3, R2, R1, R0 are saved
+												;Ex. - If PSP is 0x100000E0 this one contains R0
+												;PPS + #24 contains the PC (DA).
+				LDR R0, [R0,#-4]				;We load the previous instruction of the program counter
+				BIC R0, #0xFF000000			   	;We mask the OPCODE bits
+				LSR R0, #16						;We shift 16 bits since the register is 32 bits but we need only 8
+				
+				; Custom code
+				
+				
+				; End custom code
+				
+				LDMFD SP!, {R0-R12, LR}
+				BX LR
+				
+				ENDP
+
+########################################################################################
+
+
