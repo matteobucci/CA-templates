@@ -29,3 +29,7 @@ void ADC_init (void) {
 void ADC_start_conversion (void) {
 	LPC_ADC->ADCR |=  (1<<24);			// Start A/D Conversion 				*/
 }
+
+void ADC_stop_conversion (void) {
+	LPC_ADC->ADCR &= ~(1<<24);			// Stop A/D Conversion	
+}
